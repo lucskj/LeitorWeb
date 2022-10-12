@@ -1,19 +1,19 @@
 import requests
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup
 import spacy
+
+
+# Função responsável por filtrar e remover partes específicas da página.
+def removerTags(soup):
+    for data in soup(['style', 'script', 'head', 'header', 'meta', '[document]', 'title', 'footer', 'iframe', 'nav']):
+        data.decompose()
+        
+    # Retornando todas as expressões em uma string, separando por espaço.
+    return ' '.join(soup.stripped_strings)   
+
 
 # Carregando a biblioteca Spacy, baseando-se na língua inglesa.
 nlp = spacy.load("en_core_web_sm")
-
-
-# Função responsável por filtrar e selecionar partes específicas da página.
-def selecionarTexto(element):
-    if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
-        return False
-    if isinstance(element, Comment):
-        return False
-    return True
-
 
 # Variáveis para armazenar o link de cada página.
 url1 = 'https://hbr.org/2022/04/the-power-of-natural-language-processing'
@@ -26,42 +26,36 @@ url5 = 'https://en.wikipedia.org/wiki/Natural_language_processing'
 urls = [url1, url2, url3, url4, url5]
 
 # Definindo arrays para armazenar o resultado de todos os textos.
-frases1 = []
-frases2 = []
-frases3 = []
-frases4 = []
-frases5 = []
-
-qtdLinks = len(urls)
-i = 0
+t1 = []
+t2 = []
+t3 = []
+t4 = []
+t5 = []
 
 # Loop para passar por cada url.
-while i < qtdLinks:
-  html = requests.get(urls[i]).text                 # Armazenando o conteúdo de toda a página.
-  soup = BeautifulSoup(html, 'html.parser')         # Removendo parte das tags HTML para estruturar o texto.
-  texts = soup.findAll(text=True)
-  textFiltrado = filter(selecionarTexto, texts)     # Enviando o texto para a filtragem.
-  text = " ".join(t.strip() for t in textFiltrado)  # Armazenando todas as expressões em uma string, separando por espaço.
-  page = nlp(text)
+for url in urls:
+  urlAtual = urls.index(url)                        # Salvando o índice da url em questão.
+  html = requests.get(url).text                     # Armazenando o conteúdo de toda a página.
+  soup = BeautifulSoup(html, 'html.parser')         # Removendo parte da estrutura HTML do texto.
+  texts = removerTags(soup)                         # Enviando o texto para filtrar.
+  page = nlp(texts)
 
   # Armazenando as sentenças em suas respectivas listas.
   for sentence in page.sents:
-    if i == 0:
-      frases1.append(sentence.text)
-    elif i == 1:
-      frases2.append(sentence.text)
-    elif i == 2:
-      frases3.append(sentence.text)
-    elif i == 3:
-      frases4.append(sentence.text)
-    elif i == 4:
-      frases5.append(sentence.text)
-
-  i += 1
+    if urlAtual == 0:
+      t1.append(sentence.text)
+    elif urlAtual == 1:
+      t2.append(sentence.text)
+    elif urlAtual == 2:
+      t3.append(sentence.text)
+    elif urlAtual == 3:
+      t4.append(sentence.text)
+    elif urlAtual == 4:
+      t5.append(sentence.text)
 
 # Printando o resultado das listas, para checagem.
-print(frases1)
-print(frases2)
-print(frases3)
-print(frases4)
-print(frases5)
+print(t1)
+print(t2)
+print(t3)
+print(t4)
+print(t5)
